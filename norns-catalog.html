@@ -187,6 +187,17 @@
   .readme-note { font-size: 12px; color: var(--faint); margin-top: 10px; min-height: 1em; }
   .readme-note.found { color: var(--ai1); }
 
+  #httpsBanner {
+    display: flex; gap: 10px; align-items: flex-start;
+    margin: 0 0 12px; padding: 11px 13px; border-radius: 12px;
+    background: rgba(251,191,36,.08); border: 1px solid rgba(251,191,36,.35);
+    color: #e8d9b0; font-size: 13px; line-height: 1.5;
+  }
+  #httpsBanner a { color: #fbbf24; text-decoration: underline; }
+  #bannerClose {
+    margin-left: auto; flex: 0 0 auto; background: none; border: none;
+    color: var(--dim); font-size: 14px; cursor: pointer; padding: 0 2px;
+  }
   #sentinel { height: 1px; }
   .empty { grid-column: 1 / -1; text-align: center; color: var(--dim); padding: 60px 20px; }
 
@@ -250,6 +261,13 @@
 </header>
 
 <main>
+  <div id="httpsBanner" hidden>
+    <span>You're viewing this over <b>https</b> — browsing works fine, but browsers block the
+    direct install calls to your norns from here. For one-tap installs,
+    <a href="norns-catalog.html" download>download this file</a> and open it locally, or use
+    ⚙ → <i>host this page on norns</i>.</span>
+    <button id="bannerClose" title="dismiss">✕</button>
+  </div>
   <div id="stats"></div>
   <div id="list"></div>
   <div id="sentinel"></div>
@@ -809,6 +827,12 @@ function loadData(payload, live) {
 }
 
 (async function boot() {
+  if (location.protocol === "https:" && !localStorage.getItem("httpsBannerDismissed"))
+    $("httpsBanner").hidden = false;
+  $("bannerClose").addEventListener("click", () => {
+    $("httpsBanner").hidden = true;
+    localStorage.setItem("httpsBannerDismissed", "1");
+  });
   const snap = JSON.parse($("snapshot").textContent);
   if (snap.scripts && snap.scripts.length) loadData(snap, false);
   else $("stats").textContent = "loading catalog…";
