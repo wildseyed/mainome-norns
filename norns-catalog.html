@@ -667,7 +667,9 @@ function toB64(str) {
 
 $("hostPage").addEventListener("click", async () => {
   const st = $("hostPageStatus");
-  const host = getHost();
+  const typed = $("host").value.trim().replace(/^https?:\/\//, "").replace(/\/+$/, "");
+  if (typed) localStorage.setItem("nornsHost", typed);
+  const host = typed || getHost();
   st.className = "settings-status";
   st.textContent = "reading page source…";
 
@@ -698,7 +700,11 @@ $("hostPage").addEventListener("click", async () => {
   }
   let out = "";
   ws.onmessage = (e) => { out += String(e.data); };
-  ws.send(`os.execute("mkdir -p $HOME/dust/data && echo '" .. table.concat(NCUP) .. "' | base64 -d > $HOME/dust/data/norns-catalog.html && echo NC_HOST_OK || echo NC_HOST_FAIL")\n`);
+  // write the base64 through Lua io (a single giant echo argument would
+  // exceed the kernel's 128 KB per-argument exec limit for this file size)
+  ws.send(`os.execute("mkdir -p $HOME/dust/data")\n`);
+  ws.send(`NCF = io.open(os.getenv("HOME").."/dust/data/.nc-upload.b64", "wb") for _,c in ipairs(NCUP) do NCF:write(c) end NCF:close() NCUP = nil NCF = nil\n`);
+  ws.send(`os.execute("base64 -d $HOME/dust/data/.nc-upload.b64 > $HOME/dust/data/norns-catalog.html && rm $HOME/dust/data/.nc-upload.b64 && echo NC_HOST_OK || echo NC_HOST_FAIL")\n`);
 
   const deadline = Date.now() + 20000;
   while (!/NC_HOST_(OK|FAIL)/.test(out) && Date.now() < deadline)
