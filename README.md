@@ -20,7 +20,8 @@ This project routes around the gate entirely:
 - **Discovery without permission.** The catalog is built on
   [nornslist](https://github.com/seajaysec/nornslist), which finds norns scripts across
   *all* of public GitHub — tagged or not, forum-member or not, currently ~1,240 scripts
-  and refreshed nightly.
+  and refreshed every 3 hours by a GitHub Actions workflow in that repo (nothing to
+  run or host on your side).
 - **AI-assisted work gets top billing, not a scarlet letter.** Scripts whose authors
   disclose LLM assistance are marked with a ✦ badge and boosted to the top of the default
   view. The methods are transparent (see below), and the curator list is plain text anyone
@@ -105,8 +106,8 @@ The list travels with the file — anyone you share it with sees the same flags.
 
 Want your own repos auto-detected everywhere, no curation needed? Put a disclosure in the
 repo's GitHub description **and** README — e.g. *"built with Claude"* or *"AI-assisted
-development"*. nornslist re-scrapes GitHub nightly, so the description propagates to every
-copy of the catalog on its own.
+development"*. nornslist re-scrapes GitHub every 3 hours, so the description propagates
+to every copy of the catalog on its own.
 
 ## Refreshing the embedded snapshot
 
@@ -138,7 +139,7 @@ block and any other edits are preserved.
 ## Data & credit
 
 Catalog data: [seajaysec/nornslist](https://github.com/seajaysec/nornslist) — public
-GitHub discovery of norns scripts, refreshed nightly. README text and images are not
+GitHub discovery of norns scripts, refreshed every 3 hours. README text and images are not
 mirrored; links go to the authors' own repos.
 
 Built for the norns community — all of it.
