@@ -592,7 +592,7 @@ async function installToNorns(s, btn, log) {
   const watchdog = setTimeout(() => {
     write("still waiting on the norns — large repos can take a while; check maiden if this persists");
     done();
-  }, 150000);
+  }, 240000);
 
   write("> POST " + api);
 
@@ -631,26 +631,34 @@ async function installToNorns(s, btn, log) {
   }
 
   write(`verifying via matron REPL (ws://${host.split(":")[0]}:5555)…`);
-  try {
-    const out = await replEval(
-      host,
-      `os.execute("test -d $HOME/dust/code/${proj} && echo NC_OK || echo NC_MISSING")`,
-      /NC_(OK|MISSING)/,
-      20000
-    );
-    if (/NC_OK/.test(out)) {
-      write(`"${proj}" present in ~/dust/code — install confirmed ✓`, "ok");
-      write("(restart norns via SYSTEM > RESTART if the script needs it)");
-      toast(proj + " installed");
-    } else if (/NC_MISSING/.test(out)) {
-      write(`"${proj}" not found on norns — clone may have failed or is still running;`, "bad");
-      write("check maiden's project manager, or retry in a moment");
-      toast("install unconfirmed", true);
-    } else {
-      write("no clear answer from matron — check maiden to confirm");
-    }
-  } catch {
-    write("couldn't reach matron REPL for verification — check maiden's project list");
+  // the clone runs on the norns and may still be in flight when the POST
+  // returns — keep rechecking for a while instead of giving up after 20 s
+  let out = "", noted = false;
+  const verifyUntil = Date.now() + 90000;
+  do {
+    try {
+      out = await replEval(
+        host,
+        `os.execute("test -d $HOME/dust/code/${proj} && echo NC_OK || echo NC_MISSING")`,
+        /NC_(OK|MISSING)/,
+        20000
+      );
+    } catch { out = ""; }
+    if (/NC_OK/.test(out)) break;
+    if (!noted) { noted = true; write("not confirmed yet — clone may still be running; rechecking…"); }
+    await new Promise(r => setTimeout(r, 5000));
+  } while (Date.now() < verifyUntil);
+
+  if (/NC_OK/.test(out)) {
+    write(`"${proj}" present in ~/dust/code — install confirmed ✓`, "ok");
+    write("(restart norns via SYSTEM > RESTART if the script needs it)");
+    toast(proj + " installed");
+  } else if (/NC_MISSING/.test(out)) {
+    write(`"${proj}" not found on norns after 90 s — clone may have failed;`, "bad");
+    write("check maiden's project manager, or retry in a moment");
+    toast("install unconfirmed", true);
+  } else {
+    write("no clear answer from matron — check maiden's project list to confirm");
   }
   done();
 }
