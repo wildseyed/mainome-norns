@@ -82,6 +82,12 @@ into `~/dust/data/norns-catalog.html`. Share the resulting URL with any device o
 network — same-origin with maiden means installs get real JSON responses instead of the
 verification step.
 
+Finding the hosted copy later: the URL is always
+`http://<norns>/api/v1/dust/data/norns-catalog.html` (maiden's server serves files out of
+`~/dust/`; the exact link is shown in the settings panel right after upload). Note that
+nothing is added to maiden's own web UI — its frontend only lists `dust/code` projects and
+has no way to register links, so bookmark the URL or write it down.
+
 ### Curate the ✦ list
 
 Edit the `CURATION` block near the top of the `<script>` in `norns-catalog.html`:
